@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-node-deployment
+spec:
+  selector:
+    matchLabels:
+      app: test-node
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: test-node
+    spec:
+      containers:
+      - name: test-node
+        image: test-node:0.0.2
+        command: ["node"]
+        args: ["/app/index.js"]
+        volumeMounts:
+        - name: test-persistent-storage
+          mountPath: /app/test-persistent-storage
+      volumes:
+      - name: test-persistent-storage
+        persistentVolumeClaim:
+          claimName: filesystem-pv-claim

@@ -1,0 +1,45 @@
+# https://kubernetes.io/ja/docs/concepts/storage/persistent-volumes/#raw%E3%83%96%E3%83%AD%E3%83%83%E3%82%AF%E3%83%9C%E3%83%AA%E3%83%A5%E3%83%BC%E3%83%A0%E3%81%AE%E3%82%B5%E3%83%9D%E3%83%BC%E3%83%88
+
+# これだけだと動かない
+# どうやらvolume typeを指定しないといけない
+# ここがcephfsとかに関連してくるっぽい
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv
+  labels:
+    type: local-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    # - ReadWriteOnce
+    - ReadWriteMany
+  # ここを使いたい場合、StorageClassというresourceを作らないと駄目。label的なものではない
+  # storageClassName: test-pv
+  # volume typeがlocalの場合はこんな感じ
+  local:
+    path: /Users/rchaser53/Desktop/fs-playground
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          # 配列だけどnode複数は無理なんじゃない？
+          values:
+          - lima-rancher-desktop
+
+  # volummeMode: Blockだとファイルシステムを持たないブロックデバイスになる
+  #              デフォルトだとFilesystemになる模様
+  # アプリケーション側がRAWブロックデバイスの扱い方を知らないと駄目
+  # https://kubernetes.io/ja/docs/concepts/storage/persistent-volumes/#%E3%83%9C%E3%83%AA%E3%83%A5%E3%83%BC%E3%83%A0%E3%83%A2%E3%83%BC%E3%83%89
+  # volumeMode: Block
+
+
+  # persistentVolumeReclaimPolicy: Retain
+  # fc:
+  #   targetWWNs: ["50060e801049cfd1"]
+  #   lun: 0
+  #   readOnly: false
